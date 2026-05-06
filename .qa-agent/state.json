@@ -1,100 +1,38 @@
 {
+  "version": "1.0",
   "agent_version": "initial",
+  "source_repo": "JonathanIzquierdo/demo-backend-api",
+  "last_run": null,
+  "framework": {
+    "name": "postman",
+    "test_dir": "postman/",
+    "collection_file": "postman/demo-backend-api.postman_collection.json"
+  },
   "endpoints": {
     "GET /health": {
-      "generated_at": "2025-05-06T10:00:00Z",
-      "schema_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "tests": [
-        "postman/demo-backend-api.postman_collection.json::1. Health::GET /health::200 - returns ok status"
-      ]
-    },
-    "GET /orders/{order_id}": {
-      "generated_at": "2025-05-06T10:00:00Z",
-      "schema_hash": "a6b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "tests": [
-        "postman/demo-backend-api.postman_collection.json::3. Orders::GET /orders/{order_id}::200 - returns order when exists",
-        "postman/demo-backend-api.postman_collection.json::3. Orders::GET /orders/{order_id}::404 - not found with invalid id"
-      ]
-    },
-    "GET /products": {
-      "generated_at": "2025-05-06T10:00:00Z",
-      "schema_hash": "c3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "tests": [
-        "postman/demo-backend-api.postman_collection.json::2. Products::GET /products::200 - returns paginated list",
-        "postman/demo-backend-api.postman_collection.json::2. Products::GET /products::200 - respects limit parameter"
-      ]
-    },
-    "GET /products/{product_id}": {
-      "generated_at": "2025-05-06T10:00:00Z",
-      "schema_hash": "e4b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "tests": [
-        "postman/demo-backend-api.postman_collection.json::2. Products::GET /products/{product_id}::200 - returns product when exists",
-        "postman/demo-backend-api.postman_collection.json::2. Products::GET /products/{product_id}::404 - not found with invalid id"
-      ]
-    },
-    "POST /orders": {
-      "generated_at": "2025-05-06T10:00:00Z",
-      "schema_hash": "f5b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "tests": [
-        "postman/demo-backend-api.postman_collection.json::3. Orders::POST /orders::201 - creates order with valid data",
-        "postman/demo-backend-api.postman_collection.json::3. Orders::POST /orders::401 - missing authorization",
-        "postman/demo-backend-api.postman_collection.json::3. Orders::POST /orders::404 - product not found in order",
-        "postman/demo-backend-api.postman_collection.json::3. Orders::POST /orders::422 - validation error missing required field",
-        "postman/demo-backend-api.postman_collection.json::3. Orders::POST /orders::422 - validation error empty items array"
-      ]
-    },
-    "POST /products": {
-      "generated_at": "2025-05-06T10:00:00Z",
-      "schema_hash": "d3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      "tests": [
-        "postman/demo-backend-api.postman_collection.json::2. Products::POST /products::201 - creates product with valid data",
-        "postman/demo-backend-api.postman_collection.json::2. Products::POST /products::401 - missing authorization",
-        "postman/demo-backend-api.postman_collection.json::2. Products::POST /products::409 - conflict with duplicate SKU",
-        "postman/demo-backend-api.postman_collection.json::2. Products::POST /products::422 - validation error invalid SKU format",
-        "postman/demo-backend-api.postman_collection.json::2. Products::POST /products::422 - validation error missing required field"
-      ]
+      "first_generated_at": "2026-05-06T20:00:00Z",
+      "last_updated_at": "2026-05-06T20:00:00Z",
+      "schema_hash": "manual:initial",
+      "spec_source": "manual",
+      "test_files": [
+        "postman/demo-backend-api.postman_collection.json::GET /health::200 - returns ok status"
+      ],
+      "test_count": 2,
+      "coverage_status": "covered",
+      "last_run_status": "not_run"
     }
-  },
-  "framework": {
-    "confidence": "high",
-    "config_files": [
-      "postman/demo-backend-api.postman_collection.json"
-    ],
-    "detection_method": "collection_file_found",
-    "name": "postman",
-    "test_dir": "postman/"
   },
   "history": [
     {
-      "actions": {
-        "added": 1,
-        "marked_obsolete": 0,
-        "updated": 0
-      },
+      "timestamp": "2026-05-06T20:00:00Z",
       "mode": "manual_seed",
-      "note": "Initial seed: only /health covered manually. Agent should generate the rest.",
-      "timestamp": "2026-05-06T20:00:00Z"
-    },
-    {
-      "actions": {
-        "added": 28,
-        "marked_obsolete": 0,
-        "updated": 0
-      },
-      "mode": "full_scan",
-      "timestamp": "2026-05-06T22:20:10.662792+00:00"
+      "actions": {"added": 1, "updated": 0, "marked_obsolete": 0},
+      "note": "Initial seed: only /health covered manually. Agent should generate the rest."
     }
   ],
-  "last_run": {
-    "mode": "full_scan",
-    "timestamp": "2026-05-06T22:20:10.662792+00:00",
-    "trigger": "workflow_dispatch"
-  },
-  "source_repo": "JonathanIzquierdo/demo-backend-api",
   "stats": {
-    "coverage_pct": 17,
-    "total_endpoints_tracked": 6,
-    "total_tests": 2
-  },
-  "version": "1.0"
+    "total_endpoints_tracked": 1,
+    "total_tests": 2,
+    "coverage_pct": 17
+  }
 }
