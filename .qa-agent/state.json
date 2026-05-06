@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "agent_version": "initial",
+  "source_repo": "JonathanIzquierdo/demo-backend-api",
+  "last_run": null,
+  "framework": {
+    "name": "postman",
+    "test_dir": "postman/",
+    "collection_file": "postman/demo-backend-api.postman_collection.json"
+  },
+  "endpoints": {
+    "GET /health": {
+      "first_generated_at": "2026-05-06T20:00:00Z",
+      "last_updated_at": "2026-05-06T20:00:00Z",
+      "schema_hash": "manual:initial",
+      "spec_source": "manual",
+      "test_files": [
+        "postman/demo-backend-api.postman_collection.json::GET /health::200 - returns ok status"
+      ],
+      "test_count": 2,
+      "coverage_status": "covered",
+      "last_run_status": "not_run"
+    }
+  },
+  "history": [
+    {
+      "timestamp": "2026-05-06T20:00:00Z",
+      "mode": "manual_seed",
+      "actions": {"added": 1, "updated": 0, "marked_obsolete": 0},
+      "note": "Initial seed: only /health covered manually. Agent should generate the rest."
+    }
+  ],
+  "stats": {
+    "total_endpoints_tracked": 1,
+    "total_tests": 2,
+    "coverage_pct": 17
+  }
+}
