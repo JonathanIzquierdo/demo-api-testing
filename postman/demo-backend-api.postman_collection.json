@@ -1,0 +1,44 @@
+{
+  "info": {
+    "name": "demo-backend-api API Tests",
+    "_postman_id": "f8a2c3e4-5d6e-4a8b-9c2d-1e3f4a5b6c7d",
+    "description": "API tests for demo-backend-api. Maintained by QAEngineerAgent.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8000"},
+    {"key": "authToken", "value": "demo-token-123"}
+  ],
+  "item": [
+    {
+      "name": "GET /health",
+      "item": [
+        {
+          "name": "200 - returns ok status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {"raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"]}
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Response has ok status', function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.equal('ok');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
