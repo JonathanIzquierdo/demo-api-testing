@@ -1,0 +1,91 @@
+name: Run API Tests
+
+# Corre Newman contra el backend (que se levanta en el mismo runner)
+# y reporta coverage + métricas en el summary del workflow.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout api-testing
+        uses: actions/checkout@v4
+
+      - name: Checkout backend (sibling repo)
+        uses: actions/checkout@v4
+        with:
+          repository: JonathanIzquierdo/demo-backend-api
+          path: backend
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install backend deps and start server
+        run: |
+          cd backend
+          pip install -r requirements.txt
+          nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > /tmp/backend.log 2>&1 &
+          sleep 3
+          curl -fsS http://localhost:8000/health || (cat /tmp/backend.log; exit 1)
+
+      - name: Setup Node + Newman
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Newman + reporter
+        run: |
+          npm install -g newman newman-reporter-htmlextra
+
+      - name: Run collection
+        id: newman
+        continue-on-error: true
+        run: |
+          mkdir -p reports
+          newman run postman/demo-backend-api.postman_collection.json \
+            --env-var "baseUrl=http://localhost:8000" \
+            --env-var "authToken=demo-token-123" \
+            --reporters cli,json,htmlextra \
+            --reporter-json-export reports/newman.json \
+            --reporter-htmlextra-export reports/newman.html
+
+      - name: Compute coverage and metrics
+        id: metrics
+        if: always()
+        run: |
+          python3 scripts/compute_metrics.py \
+            --newman-report reports/newman.json \
+            --openapi backend/openapi.json \
+            --collection postman/demo-backend-api.postman_collection.json \
+            --output reports/metrics.json
+          cat reports/metrics.json
+
+      - name: Render summary
+        if: always()
+        run: |
+          python3 scripts/render_summary.py \
+            --metrics reports/metrics.json \
+            >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: reports/
+
+      - name: Fail job if any test failed
+        if: steps.newman.outcome == 'failure'
+        run: |
+          echo "Some tests failed. See the report artifact for details."
+          exit 1
