@@ -1,103 +1,31 @@
 {
+  "version": "1.0",
   "agent_version": "initial",
+  "source_repo": "JonathanIzquierdo/demo-backend-api",
+  "last_run": null,
+  "framework": {
+    "name": "postman",
+    "test_dir": "postman/",
+    "collection_file": "postman/demo-backend-api.postman_collection.json"
+  },
   "endpoints": {
     "GET /health": {
-      "generated_at": "2026-05-06T10:00:00Z",
-      "schema_hash": "health-v1",
-      "tests": [
-        "postman/demo-backend-api.postman_collection.json::1. Health::GET /health::200 - returns ok status"
-      ]
-    },
-    "GET /orders/{order_id}": {
-      "generated_at": "2026-05-06T10:00:00Z",
-      "schema_hash": "orders-get-by-id-v1",
-      "tests": [
-        "postman/demo-backend-api.postman_collection.json::3. Orders::GET /orders/{order_id}::200 - returns order when exists",
-        "postman/demo-backend-api.postman_collection.json::3. Orders::GET /orders/{order_id}::200 - returned order id matches requested id",
-        "postman/demo-backend-api.postman_collection.json::3. Orders::GET /orders/{order_id}::404 - returns not found when order does not exist"
-      ]
-    },
-    "GET /products": {
-      "generated_at": "2026-05-06T10:00:00Z",
-      "schema_hash": "products-list-v1",
-      "tests": [
-        "postman/demo-backend-api.postman_collection.json::2. Products::GET /products::200 - returns array of products",
-        "postman/demo-backend-api.postman_collection.json::2. Products::GET /products::200 - response items have required Product schema fields",
-        "postman/demo-backend-api.postman_collection.json::2. Products::GET /products::200 - pagination with limit and offset"
-      ]
-    },
-    "GET /products/{product_id}": {
-      "generated_at": "2026-05-06T10:00:00Z",
-      "schema_hash": "products-get-by-id-v1",
-      "tests": [
-        "postman/demo-backend-api.postman_collection.json::2. Products::GET /products/{product_id}::200 - returns product when exists",
-        "postman/demo-backend-api.postman_collection.json::2. Products::GET /products/{product_id}::200 - returned product id matches requested id",
-        "postman/demo-backend-api.postman_collection.json::2. Products::GET /products/{product_id}::404 - returns not found when product does not exist"
-      ]
-    },
-    "POST /orders": {
-      "generated_at": "2026-05-06T10:00:00Z",
-      "schema_hash": "orders-post-v1",
-      "tests": [
-        "postman/demo-backend-api.postman_collection.json::3. Orders::POST /orders::201 - creates order successfully",
-        "postman/demo-backend-api.postman_collection.json::3. Orders::POST /orders::401 - missing authorization header",
-        "postman/demo-backend-api.postman_collection.json::3. Orders::POST /orders::401 - invalid authorization token",
-        "postman/demo-backend-api.postman_collection.json::3. Orders::POST /orders::404 - product not found",
-        "postman/demo-backend-api.postman_collection.json::3. Orders::POST /orders::422 - missing required fields"
-      ]
-    },
-    "POST /products": {
-      "generated_at": "2026-05-06T10:00:00Z",
-      "schema_hash": "products-post-v1",
-      "tests": [
-        "postman/demo-backend-api.postman_collection.json::2. Products::POST /products::201 - creates product successfully",
-        "postman/demo-backend-api.postman_collection.json::2. Products::POST /products::401 - missing authorization header",
-        "postman/demo-backend-api.postman_collection.json::2. Products::POST /products::401 - invalid authorization token",
-        "postman/demo-backend-api.postman_collection.json::2. Products::POST /products::422 - missing required fields",
-        "postman/demo-backend-api.postman_collection.json::2. Products::POST /products::409 - conflict when SKU already exists"
-      ]
+      "first_generated_at": "2026-05-07T00:00:00Z",
+      "last_updated_at": "2026-05-07T00:00:00Z",
+      "schema_hash": "manual:initial",
+      "spec_source": "manual",
+      "test_files": [
+        "postman/demo-backend-api.postman_collection.json::GET /health::200 - returns ok status"
+      ],
+      "test_count": 2,
+      "coverage_status": "covered",
+      "last_run_status": "not_run"
     }
   },
-  "framework": {
-    "confidence": "high",
-    "config_files": [
-      "postman/demo-backend-api.postman_collection.json"
-    ],
-    "name": "postman",
-    "runner": "Newman (via GitHub Actions)",
-    "test_dir": "postman/"
-  },
-  "history": [
-    {
-      "actions": {
-        "added": 1,
-        "marked_obsolete": 0,
-        "updated": 0
-      },
-      "mode": "manual_seed",
-      "note": "Initial seed: only /health covered manually. Agent should generate the rest.",
-      "timestamp": "2026-05-06T20:00:00Z"
-    },
-    {
-      "actions": {
-        "added": 28,
-        "marked_obsolete": 0,
-        "updated": 0
-      },
-      "mode": "full_scan",
-      "timestamp": "2026-05-06T22:45:49.509261+00:00"
-    }
-  ],
-  "last_run": {
-    "mode": "full_scan",
-    "timestamp": "2026-05-06T22:45:49.509261+00:00",
-    "trigger": "workflow_dispatch"
-  },
-  "source_repo": "JonathanIzquierdo/demo-backend-api",
+  "history": [],
   "stats": {
-    "coverage_pct": 17,
-    "total_endpoints_tracked": 6,
-    "total_tests": 2
-  },
-  "version": "1.0"
+    "total_endpoints_tracked": 1,
+    "total_tests": 2,
+    "coverage_pct": 17
+  }
 }
