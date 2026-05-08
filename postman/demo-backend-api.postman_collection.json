@@ -6,51 +6,797 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://localhost:8000"
-    },
-    {
-      "key": "authToken",
-      "value": "demo-token-123"
-    }
+    {"key": "baseUrl", "value": "http://localhost:8000"},
+    {"key": "authToken", "value": "demo-token-123"},
+    {"key": "createdProductId", "value": ""},
+    {"key": "createdProductSku", "value": ""},
+    {"key": "createdOrderId", "value": ""},
+    {"key": "uniqueSku", "value": ""},
+    {"key": "uniqueEmail", "value": ""},
+    {"key": "nonExistentId", "value": "00000000-0000-0000-0000-000000000000"}
   ],
   "item": [
     {
-      "name": "GET /health",
+      "name": "0. Setup",
       "item": [
         {
-          "name": "200 - returns ok status",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{baseUrl}}/health",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "health"
-              ]
-            }
-          },
+          "name": "Setup: generate unique values",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now();",
+                  "const rand = Math.floor(Math.random() * 10000);",
+                  "const skuRaw = 'TEST-' + ts + '-' + rand;",
+                  "pm.collectionVariables.set('uniqueSku', skuRaw.substring(0, 20).toUpperCase());",
+                  "pm.collectionVariables.set('uniqueEmail', 'test-' + ts + '@example.com');",
+                  "pm.collectionVariables.set('nonExistentId', '00000000-0000-0000-0000-000000000000');"
+                ],
+                "type": "text/javascript"
+              }
+            },
             {
               "listen": "test",
               "script": {
                 "exec": [
-                  "pm.test('Status is 200', function () {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "pm.test('Response has ok status', function () {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.status).to.equal('ok');",
+                  "pm.test('Setup: unique values generated', function () {",
+                  "    pm.expect(pm.collectionVariables.get('uniqueSku')).to.be.a('string').and.have.length.above(0);",
+                  "    pm.expect(pm.collectionVariables.get('uniqueEmail')).to.include('@');",
                   "});"
                 ],
                 "type": "text/javascript"
               }
             }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Setup: create fixture product",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const ts = Date.now();",
+                  "const rand = Math.floor(Math.random() * 10000);",
+                  "const skuRaw = 'FIX-' + ts + '-' + rand;",
+                  "pm.collectionVariables.set('fixtureSku', skuRaw.substring(0, 20).toUpperCase());"
+                ],
+                "type": "text/javascript"
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Setup: fixture product created with 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "    const body = pm.response.json();",
+                  "    pm.expect(body).to.have.property('id');",
+                  "    pm.expect(body).to.have.property('sku');",
+                  "    pm.collectionVariables.set('createdProductId', body.id);",
+                  "    pm.collectionVariables.set('createdProductSku', body.sku);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {"key": "Authorization", "value": "Bearer {{authToken}}"},
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Fixture Product\",\n  \"sku\": \"{{fixtureSku}}\",\n  \"price\": 19.99,\n  \"stock\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["products"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Health",
+      "item": [
+        {
+          "name": "GET /health",
+          "item": [
+            {
+              "name": "200 - returns ok status",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test('Response has ok status', function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData.status).to.equal('ok');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/health",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["health"]
+                }
+              }
+            }
           ]
+        }
+      ]
+    },
+    {
+      "name": "2. Products",
+      "item": [
+        {
+          "name": "GET /products",
+          "item": [
+            {
+              "name": "200 - returns paginated list with default params",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test('Response is an array', function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('array');",
+                      "});",
+                      "pm.test('Each product has required fields', function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    if (jsonData.length > 0) {",
+                      "        var product = jsonData[0];",
+                      "        pm.expect(product).to.have.property('id');",
+                      "        pm.expect(product).to.have.property('name');",
+                      "        pm.expect(product).to.have.property('sku');",
+                      "        pm.expect(product).to.have.property('price');",
+                      "        pm.expect(product).to.have.property('stock');",
+                      "        pm.expect(product).to.have.property('created_at');",
+                      "    }",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["products"]
+                }
+              }
+            },
+            {
+              "name": "200 - respects limit and offset pagination params",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test('Response is an array respecting limit', function () {",
+                      "    var jsonData = pm.response.json();",
+                      "    pm.expect(jsonData).to.be.an('array');",
+                      "    pm.expect(jsonData.length).to.be.at.most(2);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products?limit=2&offset=0",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["products"],
+                  "query": [
+                    {"key": "limit", "value": "2"},
+                    {"key": "offset", "value": "0"}
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /products",
+          "item": [
+            {
+              "name": "201 - creates product with valid payload",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test('Response has required product fields', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('id');",
+                      "    pm.expect(body).to.have.property('name');",
+                      "    pm.expect(body).to.have.property('sku');",
+                      "    pm.expect(body).to.have.property('price');",
+                      "    pm.expect(body).to.have.property('stock');",
+                      "    pm.expect(body).to.have.property('created_at');",
+                      "    pm.collectionVariables.set('newProductId', body.id);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{authToken}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"New Test Product\",\n  \"sku\": \"{{uniqueSku}}\",\n  \"price\": 29.99,\n  \"stock\": 50\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["products"]
+                }
+              }
+            },
+            {
+              "name": "401 - missing authorization header",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "pm.test('Error response has detail field', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('detail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Auth Test Product\",\n  \"sku\": \"AUTHTEST-001\",\n  \"price\": 9.99\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["products"]
+                }
+              }
+            },
+            {
+              "name": "401 - invalid authorization token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "pm.test('Error response has detail field', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('detail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer invalid-token-xyz"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Auth Test Product\",\n  \"sku\": \"AUTHTEST-002\",\n  \"price\": 9.99\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["products"]
+                }
+              }
+            },
+            {
+              "name": "422 - missing required field price",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 422', function () {",
+                      "    pm.response.to.have.status(422);",
+                      "});",
+                      "pm.test('Error response has detail field', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('detail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{authToken}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"No Price Product\",\n  \"sku\": \"NOPRICE-001\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["products"]
+                }
+              }
+            },
+            {
+              "name": "409 - conflict when SKU already exists",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 409', function () {",
+                      "    pm.response.to.have.status(409);",
+                      "});",
+                      "pm.test('Error response has detail field', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('detail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{authToken}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Duplicate SKU Product\",\n  \"sku\": \"{{createdProductSku}}\",\n  \"price\": 5.99\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/products",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["products"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /products/{product_id}",
+          "item": [
+            {
+              "name": "200 - returns product when exists",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test('Response has required product fields', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('id');",
+                      "    pm.expect(body).to.have.property('name');",
+                      "    pm.expect(body).to.have.property('sku');",
+                      "    pm.expect(body).to.have.property('price');",
+                      "    pm.expect(body).to.have.property('stock');",
+                      "    pm.expect(body).to.have.property('created_at');",
+                      "});",
+                      "pm.test('Response id matches requested id', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body.id).to.equal(pm.collectionVariables.get('createdProductId'));",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products/{{createdProductId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["products", "{{createdProductId}}"]
+                }
+              }
+            },
+            {
+              "name": "404 - returns error when product not found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "pm.test('Error response has detail field', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('detail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/products/{{nonExistentId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["products", "{{nonExistentId}}"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Orders",
+      "item": [
+        {
+          "name": "POST /orders",
+          "item": [
+            {
+              "name": "201 - creates order with valid payload",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 201', function () {",
+                      "    pm.response.to.have.status(201);",
+                      "});",
+                      "pm.test('Response has required order fields', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('id');",
+                      "    pm.expect(body).to.have.property('customer_email');",
+                      "    pm.expect(body).to.have.property('items');",
+                      "    pm.expect(body).to.have.property('total');",
+                      "    pm.expect(body).to.have.property('status');",
+                      "    pm.expect(body).to.have.property('created_at');",
+                      "    pm.collectionVariables.set('createdOrderId', body.id);",
+                      "});",
+                      "pm.test('Order items is an array with at least one item', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body.items).to.be.an('array').with.length.above(0);",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{authToken}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customer_email\": \"{{uniqueEmail}}\",\n  \"items\": [\n    {\n      \"product_id\": \"{{createdProductId}}\",\n      \"quantity\": 2\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["orders"]
+                }
+              }
+            },
+            {
+              "name": "401 - missing authorization header",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "pm.test('Error response has detail field', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('detail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customer_email\": \"noauth@example.com\",\n  \"items\": [\n    {\n      \"product_id\": \"{{createdProductId}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["orders"]
+                }
+              }
+            },
+            {
+              "name": "401 - invalid authorization token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 401', function () {",
+                      "    pm.response.to.have.status(401);",
+                      "});",
+                      "pm.test('Error response has detail field', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('detail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer bad-token-999"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customer_email\": \"badauth@example.com\",\n  \"items\": [\n    {\n      \"product_id\": \"{{createdProductId}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["orders"]
+                }
+              }
+            },
+            {
+              "name": "422 - missing required field customer_email",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 422', function () {",
+                      "    pm.response.to.have.status(422);",
+                      "});",
+                      "pm.test('Error response has detail field', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('detail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{authToken}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"items\": [\n    {\n      \"product_id\": \"{{createdProductId}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["orders"]
+                }
+              }
+            },
+            {
+              "name": "404 - product not found in order items",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "pm.test('Error response has detail field', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('detail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [
+                  {"key": "Authorization", "value": "Bearer {{authToken}}"},
+                  {"key": "Content-Type", "value": "application/json"}
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"customer_email\": \"notfound@example.com\",\n  \"items\": [\n    {\n      \"product_id\": \"{{nonExistentId}}\",\n      \"quantity\": 1\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["orders"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET /orders/{order_id}",
+          "item": [
+            {
+              "name": "200 - returns order when exists",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 200', function () {",
+                      "    pm.response.to.have.status(200);",
+                      "});",
+                      "pm.test('Response has required order fields', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('id');",
+                      "    pm.expect(body).to.have.property('customer_email');",
+                      "    pm.expect(body).to.have.property('items');",
+                      "    pm.expect(body).to.have.property('total');",
+                      "    pm.expect(body).to.have.property('status');",
+                      "    pm.expect(body).to.have.property('created_at');",
+                      "});",
+                      "pm.test('Response id matches requested id', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body.id).to.equal(pm.collectionVariables.get('createdOrderId'));",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdOrderId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["orders", "{{createdOrderId}}"]
+                }
+              }
+            },
+            {
+              "name": "404 - returns error when order not found",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test('Status is 404', function () {",
+                      "    pm.response.to.have.status(404);",
+                      "});",
+                      "pm.test('Error response has detail field', function () {",
+                      "    var body = pm.response.json();",
+                      "    pm.expect(body).to.have.property('detail');",
+                      "});"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{nonExistentId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["orders", "{{nonExistentId}}"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "99. Teardown",
+      "item": [
+        {
+          "name": "Teardown: note - no DELETE endpoints defined in spec",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// TODO: cleanup not possible without DELETE endpoint for products and orders.",
+                  "// The fixture product (id: {{createdProductId}}) and order (id: {{createdOrderId}}) remain in the backend.",
+                  "// Add DELETE /products/{id} and DELETE /orders/{id} endpoints to enable automated teardown.",
+                  "pm.test('Teardown note acknowledged', function () {",
+                  "    pm.expect(true).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
         }
       ]
     }
